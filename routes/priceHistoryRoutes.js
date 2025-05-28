@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const priceHistory = require('../controllers/priceHistory');
+const priceHistoryController = require('../controllers/priceHistoryController');
 
-router.get('/:id', priceHistory.getById);
-router.post('/', priceHistory.create);
+router.get('/:id', priceHistoryController.getById);
+router.post('/', priceHistoryController.create);
 
 module.exports = router;
