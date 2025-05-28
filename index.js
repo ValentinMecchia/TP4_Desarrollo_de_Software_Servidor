@@ -17,6 +17,7 @@ app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/assets', require('./routes/assetRoutes'));
 app.use('/api/price-history', require('./routes/priceHistoryRoutes'));
 
+
 sequelize.authenticate()
   .then(() => {
     console.log('🟢 Conectado a la DB');
@@ -27,3 +28,4 @@ sequelize.authenticate()
     app.listen(3000, () => console.log('Servidor corriendo en http://localhost:3000'));
   })
   .catch(err => console.error('Error al conectar:', err));
+
