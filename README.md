@@ -1,1 +1,9 @@
-# TP4_Desarrollo_de_Software_Servidor
+.env:
+DB_NAME=investments_dashboard_dds_tp4
+DB_USER=investments_dashboard_dds_tp4_user
+DB_PASSWORD=EMROoq6aBlmM0KeXh8RNrh8O7fzGhy1E
+DB_HOST=dpg-d0rofbumcj7s73d5fv30-a.virginia-postgres.render.com
+DB_PORT=5432
+DATABASE_URL=postgres://investments_dashboard_dds_tp4_user:EMROoq6aBlmM0KeXh8RNrh8O7fzGhy1E@dpg-d0rofbumcj7s73d5fv30-a.virginia-postgres.render.com:5432/investments_dashboard_dds_tp4
+RAPIDAPI_KEY=b6b4a672f1msh0df800d45be7874p1e42dejsnafe42f714e66
+RAPIDAPI_HOST=yahoo-finance-api-data.p.rapidapi.com
