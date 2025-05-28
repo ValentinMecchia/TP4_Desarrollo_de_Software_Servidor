@@ -159,4 +159,28 @@ router.get('/chart/simple-chart/:symbol', async (req, res) => {
   }
 });
 
+router.get('/market/equity', async (req, res) => {
+  const options = {
+    method: 'GET',
+    url: `https://${process.env.RAPIDAPI_HOST}/market/equity`,
+    params: {
+      screenerId: 'MOST_ACTIVES',
+      region: 'us',
+    },
+    headers: {
+      'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+      'X-RapidAPI-Host': process.env.RAPIDAPI_HOST
+    }
+  };
+
+  try {
+    const response = await axios.request(options);
+    res.json(response.data);
+    console.log(response.data)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al consultar la API de Yahoo Finance' });
+  }
+});
+
 module.exports = router;
