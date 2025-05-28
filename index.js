@@ -10,6 +10,12 @@ const yahooRoutes = require('./routes/yahoo_finance');
 const app = express();
 app.use(express.json());
 app.use('/api/yahoo', yahooRoutes);
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/investments', require('./routes/investmentRoutes'));
+app.use('/api/portfolios', require('./routes/portfolioRoutes'));
+app.use('/api/news', require('./routes/newsRoutes'));
+app.use('/api/assets', require('./routes/assetRoutes'));
+app.use('/api/price-history', require('./routes/priceHistoryRoutes'));
 
 sequelize.authenticate()
   .then(() => {
