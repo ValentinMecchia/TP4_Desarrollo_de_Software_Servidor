@@ -29,3 +29,18 @@ sequelize.authenticate()
   })
   .catch(err => console.error('Error al conectar:', err));
 
+
+const session = require('express-session');
+const passport = require('passport');
+require('./config/Auth');
+
+app.use(session({
+    secret: 'secreto123',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/auth', require('./routes/Auth'));
