@@ -1,4 +1,52 @@
 const Portfolio = require('../models/Portfolio');
+const { param, body, validationResult } = require('express-validator');
+
+exports.validateIdParam = [
+    param('id')
+        .isInt({ gt: 0 }).withMessage('El ID debe ser un número entero positivo'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+exports.validateCreate = [
+    body('name')
+        .notEmpty().withMessage('El nombre es obligatorio')
+        .isString().withMessage('El nombre debe ser una cadena de texto'),
+    body('description')
+        .optional()
+        .isString().withMessage('La descripción debe ser una cadena de texto'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+exports.validateUpdate = [
+    param('id')
+        .isInt({ gt: 0 }).withMessage('El ID debe ser un número entero positivo'),
+    body('name')
+        .optional()
+        .notEmpty().withMessage('El nombre no puede estar vacío')
+        .isString().withMessage('El nombre debe ser una cadena de texto'),
+    body('description')
+        .optional()
+        .isString().withMessage('La descripción debe ser una cadena de texto'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
 
 exports.getAll = async (req, res) => {
   try {
