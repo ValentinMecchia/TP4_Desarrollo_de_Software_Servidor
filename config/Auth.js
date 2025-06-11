@@ -5,7 +5,7 @@ const User = require('../models/User');
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback',
+    callbackURL: 'http://localhost:3000/api/auth/google/callback',
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails[0].value;
@@ -13,7 +13,6 @@ passport.use(new GoogleStrategy({
 
         let user = await User.findOne({ where: { email } });
 
-        // Si no existe el usuario, lo creo con email y nickName
         if (!user) {
             user = await User.create({ email, nickName });
         }
@@ -24,12 +23,15 @@ passport.use(new GoogleStrategy({
     }
 }));
 
-
 passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
-    const user = await User.findByPk(id);
-    done(null, user);
+    try {
+        const user = await User.findByPk(id);
+        done(null, user);
+    } catch (err) {
+        done(err, null);
+    }
 });
