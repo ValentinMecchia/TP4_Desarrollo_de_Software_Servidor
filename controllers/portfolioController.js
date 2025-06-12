@@ -61,7 +61,7 @@ exports.getById = async (req, res) => {
   try {
     const portfolio = await Portfolio.findByPk(req.params.id);
     if (portfolio) {
-      res.json(portfolio);
+      res.json({ portfolio });
     } else {
       res.status(404).json({ error: 'Portafolio no encontrado' });
     }
@@ -73,7 +73,7 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const newPortfolio = await Portfolio.create(req.body);
-    res.status(201).json(newPortfolio);
+    res.status(201).json({ portfolio: newPortfolio });
   } catch (error) {
     res.status(400).json({ error: 'Error al crear el portafolio' });
   }

@@ -8,11 +8,13 @@ const Portfolio = sequelize.define('Portfolio', {
   },
   createdDate: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
+    defaultValue: () => new Date().toISOString().slice(0, 10),
   },
   performance: {
     type: DataTypes.FLOAT,
-    allowNull: false,
+    allowNull: true,
+    defaultValue: 0,
   },
 }, {
   tableName: 'portfolios',
