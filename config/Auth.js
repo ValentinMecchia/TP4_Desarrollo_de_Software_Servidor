@@ -10,11 +10,15 @@ passport.use(new GoogleStrategy({
     try {
         const email = profile.emails[0].value;
         const nickName = profile.displayName;
+        const photoURL = profile.photos && profile.photos[0] ? profile.photos[0].value : null;
 
         let user = await User.findOne({ where: { email } });
 
         if (!user) {
-            user = await User.create({ email, nickName });
+            user = await User.create({ email, nickName, photoURL });
+        } else if (user.photoURL !== photoURL) {
+            user.photoURL = photoURL;
+            await user.save();
         }
 
         return done(null, user);

@@ -9,33 +9,28 @@ const yahooRoutes = require('./routes/yahoo_finance');
 
 const app = express();
 
-// CORS - importante que esté antes de sesiones y rutas
 app.use(cors({
-    origin: 'http://localhost:5173',  // frontend
-    credentials: true,                 // permite cookies y sesiones
+    origin: 'http://localhost:5173',
+    credentials: true,
 }));
 
-// Parseo de JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de sesiones
 app.use(session({
-    secret: 'secreto123',   // en producción usar variable de entorno
+    secret: 'secreto123',
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,      // true solo si usas HTTPS
-        sameSite: 'lax',    // 'none' si usas HTTPS y CORS cross-site
+        secure: false,
+        sameSite: 'lax',
     }
 }));
 
-// Inicializar Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Rutas
 app.use('/api/yahoo', yahooRoutes);
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
@@ -45,7 +40,6 @@ app.use('/api/assets', require('./routes/assetRoutes'));
 app.use('/api/price-history', require('./routes/priceHistoryRoutes'));
 app.use('/api/auth', require('./routes/auth'));
 
-// Conexión a DB y arranque del servidor
 sequelize.authenticate()
     .then(() => {
         console.log('🟢 Conectado a la DB');
