@@ -50,7 +50,11 @@ exports.validateUpdate = [
 
 exports.getAll = async (req, res) => {
   try {
-    const portfolios = await Portfolio.findAll();
+    // Solo devuelve los portafolios del usuario autenticado
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+    const portfolios = await Portfolio.findAll({ where: { userId: req.user.id } });
     res.json(portfolios);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los portafolios' });
@@ -60,11 +64,14 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const portfolio = await Portfolio.findByPk(req.params.id);
-    if (portfolio) {
-      res.json({ portfolio });
-    } else {
-      res.status(404).json({ error: 'Portafolio no encontrado' });
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
     }
+    // Solo permite ver si es del usuario autenticado
+    if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    res.json({ portfolio });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener el portafolio' });
   }
@@ -72,7 +79,13 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const newPortfolio = await Portfolio.create(req.body);
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+    const newPortfolio = await Portfolio.create({
+      ...req.body,
+      userId: req.user.id,
+    });
     res.status(201).json({ portfolio: newPortfolio });
   } catch (error) {
     res.status(400).json({ error: 'Error al crear el portafolio' });
@@ -81,15 +94,18 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const [updated] = await Portfolio.update(req.body, {
-      where: { id: req.params.id }
-    });
-    if (updated) {
-      const updatedPortfolio = await Portfolio.findByPk(req.params.id);
-      res.json(updatedPortfolio);
-    } else {
-      res.status(404).json({ error: 'Portafolio no encontrado' });
+    const portfolio = await Portfolio.findByPk(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
     }
+    if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    await portfolio.update({
+      name: req.body.name ?? portfolio.name,
+      description: req.body.description ?? portfolio.description,
+    });
+    res.json(portfolio);
   } catch (error) {
     res.status(400).json({ error: 'Error al actualizar el portafolio' });
   }
@@ -97,15 +113,72 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const deleted = await Portfolio.destroy({
-      where: { id: req.params.id }
-    });
-    if (deleted) {
-      res.json({ message: 'Portafolio eliminado' });
-    } else {
-      res.status(404).json({ error: 'Portafolio no encontrado' });
+    const portfolio = await Portfolio.findByPk(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
     }
+    if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    await portfolio.destroy();
+    res.json({ message: 'Portafolio eliminado' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar el portafolio' });
+  }
+};
+
+// Agregar asset a un portafolio
+exports.addAssetToPortfolio = async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findByPk(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+    if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    // Asegura que assets sea un array
+    let assets = Array.isArray(portfolio.assets) ? [...portfolio.assets] : [];
+    // Normaliza el asset recibido
+    const asset = {
+      name: req.body.name || req.body.shortname || req.body.symbol || "",
+      symbol: req.body.symbol,
+      quantity: Number(req.body.quantity ?? req.body.amount ?? 1),
+      price: Number(req.body.price ?? req.body.pricePerUnit ?? 0),
+      // Puedes agregar más campos si lo deseas
+    };
+    // Evita duplicados por symbol, reemplaza si ya existe
+    const idx = assets.findIndex(a => a.symbol === asset.symbol);
+    if (idx !== -1) {
+      assets[idx] = asset;
+    } else {
+      assets.push(asset);
+    }
+    await portfolio.update({ assets });
+    res.json({ ok: true, asset, assets });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al agregar asset al portafolio' });
+  }
+};
+
+// Eliminar asset de un portafolio por symbol
+exports.removeAssetFromPortfolio = async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findByPk(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+    if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    let assets = Array.isArray(portfolio.assets) ? [...portfolio.assets] : [];
+    const symbol = req.params.symbol || req.body.symbol;
+    if (!symbol) return res.status(400).json({ error: 'Símbolo requerido' });
+    // Filtra por symbol, asegurando que solo se elimina el asset correcto
+    const filtered = assets.filter(a => a.symbol !== symbol);
+    await portfolio.update({ assets: filtered });
+    res.json({ ok: true, assets: filtered });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar asset del portafolio' });
   }
 };

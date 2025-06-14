@@ -6,6 +6,11 @@ const Portfolio = sequelize.define('Portfolio', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "",
+  },
   createdDate: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -15,6 +20,15 @@ const Portfolio = sequelize.define('Portfolio', {
     type: DataTypes.FLOAT,
     allowNull: true,
     defaultValue: 0,
+  },
+  assets: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
 }, {
   tableName: 'portfolios',
