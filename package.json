@@ -4,7 +4,9 @@
   "description": ".env:\r DB_NAME=investments_dashboard_dds_tp4\r DB_USER=investments_dashboard_dds_tp4_user\r DB_PASSWORD=EMROoq6aBlmM0KeXh8RNrh8O7fzGhy1E\r DB_HOST=dpg-d0rofbumcj7s73d5fv30-a.virginia-postgres.render.com\r DB_PORT=5432\r DATABASE_URL=postgres://investments_dashboard_dds_tp4_user:EMROoq6aBlmM0KeXh8RNrh8O7fzGhy1E@dpg-d0rofbumcj7s73d5fv30-a.virginia-postgres.render.com:5432/investments_dashboard_dds_tp4\r RAPIDAPI_KEY=b6b4a672f1msh0df800d45be7874p1e42dejsnafe42f714e66\r RAPIDAPI_HOST=yahoo-finance-api-data.p.rapidapi.com",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
