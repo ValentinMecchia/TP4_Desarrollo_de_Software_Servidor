@@ -2,20 +2,30 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const New = sequelize.define('New', {
-  name: {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  name: { // Título de la noticia
     type: DataTypes.STRING,
     allowNull: false,
   },
-  content: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  content: { // Nota o descripción personalizada del usuario
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
   image: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   url: {
     type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  userId: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, {
@@ -23,4 +33,4 @@ const New = sequelize.define('New', {
   timestamps: true,
 });
 
-module.exports = New;
+module.exports = { New };

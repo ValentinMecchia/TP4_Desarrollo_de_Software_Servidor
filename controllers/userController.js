@@ -93,7 +93,18 @@ exports.updateUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
-        await user.update(req.body);
+        // Si solo se quiere actualizar el nombre de usuario (nickName)
+        if (req.body.username !== undefined) {
+            user.nickName = req.body.username;
+        }
+        // Si se permite actualizar otros campos, agregarlos aquí
+        if (req.body.email !== undefined) {
+            user.email = req.body.email;
+        }
+        if (req.body.password !== undefined) {
+            user.password = req.body.password;
+        }
+        await user.save();
         res.status(200).json(user);
     } catch (error) {
         console.error('Error al actualizar el usuario', error);

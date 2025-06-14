@@ -56,7 +56,11 @@ exports.validateUpdate = [
 
 exports.getAll = async (req, res) => {
     try {
-        const news = await New.findAll();
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'No autenticado' });
+        }
+        // Solo noticias favoritas del usuario autenticado
+        const news = await New.findAll({ where: { userId: req.user.id } });
         res.json(news);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener noticias', error });
@@ -65,7 +69,10 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
     try {
-        const new_ = await New.findByPk(req.params.id);
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'No autenticado' });
+        }
+        const new_ = await New.findOne({ where: { id: req.params.id, userId: req.user.id } });
         if (new_) res.json(new_);
         else res.status(404).json({ message: 'Noticia no encontrada' });
     } catch (error) {
@@ -75,7 +82,20 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const newNew = await New.create(req.body);
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'No autenticado' });
+        }
+        // Evita duplicados por url para el usuario
+        const exists = await New.findOne({ where: { url: req.body.url, userId: req.user.id } });
+        if (exists) return res.status(200).json(exists);
+
+        const newNew = await New.create({
+            name: req.body.name,
+            content: req.body.content || "",
+            image: req.body.image || "",
+            url: req.body.url,
+            userId: req.user.id,
+        });
         res.status(201).json(newNew);
     } catch (error) {
         res.status(400).json({ message: 'Error al crear noticia', error });
@@ -84,15 +104,19 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
-        const [updated] = await New.update(req.body, {
-            where: { id: req.params.id }
-        });
-        if (updated) {
-            const updatedNew = await New.findByPk(req.params.id);
-            res.json(updatedNew);
-        } else {
-            res.status(404).json({ message: 'Noticia no encontrada' });
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'No autenticado' });
         }
+        const new_ = await New.findOne({ where: { id: req.params.id, userId: req.user.id } });
+        if (!new_) {
+            return res.status(404).json({ message: 'Noticia no encontrada' });
+        }
+        // Solo permite actualizar el campo content (nota)
+        if (req.body.content !== undefined) {
+            new_.content = req.body.content;
+        }
+        await new_.save();
+        res.json(new_);
     } catch (error) {
         res.status(400).json({ message: 'Error al actualizar noticia', error });
     }
@@ -100,8 +124,11 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
     try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'No autenticado' });
+        }
         const deleted = await New.destroy({
-            where: { id: req.params.id }
+            where: { id: req.params.id, userId: req.user.id }
         });
         if (deleted) {
             res.json({ message: 'Noticia eliminada' });

@@ -137,7 +137,6 @@ exports.addAssetToPortfolio = async (req, res) => {
     if (!req.user || !req.user.id || portfolio.userId !== req.user.id) {
       return res.status(403).json({ error: 'No autorizado' });
     }
-    // Asegura que assets sea un array
     let assets = Array.isArray(portfolio.assets) ? [...portfolio.assets] : [];
     // Normaliza el asset recibido
     const asset = {
@@ -145,7 +144,12 @@ exports.addAssetToPortfolio = async (req, res) => {
       symbol: req.body.symbol,
       quantity: Number(req.body.quantity ?? req.body.amount ?? 1),
       price: Number(req.body.price ?? req.body.pricePerUnit ?? 0),
-      // Puedes agregar más campos si lo deseas
+      // Si ya existe, conserva el addedAt original, si no, lo pone ahora
+      addedAt: (() => {
+        const idx = assets.findIndex(a => a.symbol === req.body.symbol);
+        if (idx !== -1 && assets[idx].addedAt) return assets[idx].addedAt;
+        return new Date().toISOString();
+      })(),
     };
     // Evita duplicados por symbol, reemplaza si ya existe
     const idx = assets.findIndex(a => a.symbol === asset.symbol);
@@ -154,7 +158,10 @@ exports.addAssetToPortfolio = async (req, res) => {
     } else {
       assets.push(asset);
     }
-    await portfolio.update({ assets });
+    // Eliminar de removedAssets si se vuelve a agregar
+    let removedAssets = Array.isArray(portfolio.removedAssets) ? [...portfolio.removedAssets] : [];
+    removedAssets = removedAssets.filter(a => a.symbol !== asset.symbol);
+    await portfolio.update({ assets, removedAssets });
     res.json({ ok: true, asset, assets });
   } catch (error) {
     res.status(500).json({ error: 'Error al agregar asset al portafolio' });
@@ -174,11 +181,80 @@ exports.removeAssetFromPortfolio = async (req, res) => {
     let assets = Array.isArray(portfolio.assets) ? [...portfolio.assets] : [];
     const symbol = req.params.symbol || req.body.symbol;
     if (!symbol) return res.status(400).json({ error: 'Símbolo requerido' });
+
+    // Encuentra el asset eliminado
+    const removedAsset = assets.find(a => a.symbol === symbol);
+
     // Filtra por symbol, asegurando que solo se elimina el asset correcto
     const filtered = assets.filter(a => a.symbol !== symbol);
-    await portfolio.update({ assets: filtered });
-    res.json({ ok: true, assets: filtered });
+
+    // Guardar historial de eliminados en el portafolio (removedAssets)
+    let removedAssets = Array.isArray(portfolio.removedAssets) ? [...portfolio.removedAssets] : [];
+    if (removedAsset) {
+      // Solo registrar si no existe ya un registro con el mismo símbolo y removedAt reciente
+      removedAssets.push({
+        ...removedAsset,
+        removedAt: new Date().toISOString()
+      });
+    }
+
+    await portfolio.update({ assets: filtered, removedAssets });
+
+    res.json({ ok: true, assets: filtered, removedAssets });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar asset del portafolio' });
+  }
+};
+
+// Obtener actividad reciente (agregados y eliminados) para mostrar en el dashboard
+exports.getRecentActivity = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+    const portfolios = await Portfolio.findAll({ where: { userId: req.user.id } });
+    let allActivity = [];
+    for (const portfolio of portfolios) {
+      // Agregados
+      if (Array.isArray(portfolio.assets)) {
+        for (const asset of portfolio.assets) {
+          if (asset.addedAt) {
+            allActivity.push({
+              type: "add",
+              action: "Agregado",
+              symbol: asset.symbol,
+              name: asset.name,
+              quantity: asset.quantity,
+              date: asset.addedAt,
+              portfolio: portfolio.name,
+            });
+          }
+        }
+      }
+      // Eliminados
+      if (Array.isArray(portfolio.removedAssets)) {
+        for (const asset of portfolio.removedAssets) {
+          if (asset.removedAt) {
+            allActivity.push({
+              type: "remove",
+              action: "Eliminado",
+              symbol: asset.symbol,
+              name: asset.name,
+              quantity: asset.quantity,
+              date: asset.removedAt,
+              portfolio: portfolio.name,
+            });
+          }
+        }
+      }
+    }
+    // Ordenar por fecha descendente y tomar los últimos 10
+    allActivity = allActivity
+      .filter(a => a.date)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 10);
+    res.json({ activity: allActivity });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener actividad reciente' });
   }
 };

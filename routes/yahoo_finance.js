@@ -91,4 +91,25 @@ router.get('/market/quotes/history/:symbol', async (req, res) => {
     }
 });
 
+router.get('/news', async (req, res) => {
+    // Puedes ajustar el endpoint y parámetros según la API de Yahoo/RapidAPI que uses
+    const options = {
+        method: 'GET',
+        url: `https://${process.env.RAPIDAPI_HOST}/api/v1/markets/news`,
+        params: { region: 'US', limit: '20' },
+        headers: {
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+            'X-RapidAPI-Host': process.env.RAPIDAPI_HOST
+        }
+    };
+
+    try {
+        const response = await require('axios').request(options);
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al consultar la API de Yahoo Finance' });
+    }
+});
+
 module.exports = router;

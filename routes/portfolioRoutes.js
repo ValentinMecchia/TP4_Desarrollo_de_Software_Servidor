@@ -9,5 +9,7 @@ router.put('/:id', portfolioController.update);
 router.delete('/:id', portfolioController.remove);
 router.post('/:id/assets', portfolioController.addAssetToPortfolio);
 router.delete('/:id/assets/:symbol', portfolioController.removeAssetFromPortfolio);
+// Nueva ruta para actividad reciente
+router.get('/activity/recent', portfolioController.getRecentActivity);
 
 module.exports = router;
