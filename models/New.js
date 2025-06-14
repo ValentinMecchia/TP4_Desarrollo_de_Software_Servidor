@@ -33,4 +33,16 @@ const New = sequelize.define('New', {
   timestamps: true,
 });
 
-module.exports = { New };
+// Modelo para favoritos de assets (si no existe en models/FavoriteAsset.js)
+const FavoriteAsset = sequelize.define('FavoriteAsset', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  userId: { type: DataTypes.INTEGER, allowNull: false },
+  symbol: { type: DataTypes.STRING, allowNull: false },
+  name: { type: DataTypes.STRING, allowNull: false },
+  comment: { type: DataTypes.TEXT, allowNull: true },
+}, {
+  tableName: 'favorite_assets',
+  timestamps: true,
+});
+
+module.exports = { New, FavoriteAsset };

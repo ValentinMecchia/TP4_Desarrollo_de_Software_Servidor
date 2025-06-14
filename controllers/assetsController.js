@@ -1,5 +1,6 @@
 const { body, validationResult } = require('express-validator');
-const Asset = require('../models/Asset');
+const { Asset, FavoriteAsset } = require('../models/Asset'); // <-- Importar ambos modelos correctamente
+const { Op } = require('sequelize');
 
 const validateAsset = [
     body('name')
@@ -90,4 +91,72 @@ exports.remove = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error al eliminar el asset' });
     }
+};
+
+// Obtener favoritos del usuario autenticado
+exports.getFavorites = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+    const favs = await FavoriteAsset.findAll({ where: { userId: req.user.id } });
+    res.json(favs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener favoritos', error });
+  }
+};
+
+// Agregar favorito
+exports.addFavorite = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+    // Evita duplicados por symbol para el usuario
+    const exists = await FavoriteAsset.findOne({ where: { symbol: req.body.symbol, userId: req.user.id } });
+    if (exists) return res.status(200).json(exists);
+
+    const fav = await FavoriteAsset.create({
+      userId: req.user.id,
+      symbol: req.body.symbol,
+      name: req.body.name || "",
+      comment: req.body.comment || "",
+    });
+    res.status(201).json(fav);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al agregar favorito', error });
+  }
+};
+
+// Actualizar comentario de favorito
+exports.updateFavorite = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+    const fav = await FavoriteAsset.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    if (!fav) return res.status(404).json({ message: 'Favorito no encontrado' });
+    if (req.body.comment !== undefined) fav.comment = req.body.comment;
+    await fav.save();
+    res.json(fav);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar favorito', error });
+  }
+};
+
+// Eliminar favorito
+exports.removeFavorite = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+    const deleted = await FavoriteAsset.destroy({ where: { id: req.params.id, userId: req.user.id } });
+    if (deleted) {
+      res.json({ message: 'Favorito eliminado' });
+    } else {
+      res.status(404).json({ message: 'Favorito no encontrado' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar favorito', error });
+  }
 };
