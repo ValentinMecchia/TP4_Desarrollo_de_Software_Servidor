@@ -17,9 +17,10 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        console.log('🌐 Solicitud con origin:', origin);
+        const cleanOrigin = origin?.replace(/\/$/, '');
+        console.log('🌐 Solicitud con origin:', cleanOrigin);
 
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(cleanOrigin)) {
             callback(null, true);
         } else {
             callback(new Error('CORS no permitido por el servidor'));
