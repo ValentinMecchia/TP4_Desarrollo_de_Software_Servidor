@@ -11,7 +11,9 @@ const app = express();
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://tp4-desarrollo-de-software-servidor.onrender.com'
+    'http://localhost:5173/',
+    'https://tp4-desarrollo-de-software-servidor.onrender.com',
+    'https://tp4-desarrollo-de-software-servidor.onrender.com/'
 ];
 
 app.use(cors({
