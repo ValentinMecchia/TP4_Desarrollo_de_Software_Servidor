@@ -9,8 +9,19 @@ const yahooRoutes = require('./routes/yahoo_finance');
 
 const app = express();
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://tp4-desarrollo-de-software-servidor.onrender.com'
+];
+
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS no permitido por el servidor'));
+        }
+    },
     credentials: true,
 }));
 
