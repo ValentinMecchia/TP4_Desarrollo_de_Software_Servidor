@@ -6,10 +6,12 @@ router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/' }),
     (req, res) => {
-        res.redirect('http://localhost:5173/dashboard');
+        res.redirect(`${FRONTEND_URL}/dashboard`);
     }
 );
 
