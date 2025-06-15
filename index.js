@@ -11,13 +11,14 @@ const app = express();
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'http://localhost:5173/',
     'https://tp4-desarrollo-de-software-servidor.onrender.com',
-    'https://tp4-desarrollo-de-software-servidor.onrender.com/'
+    'https://tp-4-desarrollo-de-software-cliente.vercel.app'
 ];
 
 app.use(cors({
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
+        console.log('🌐 Solicitud con origin:', origin);
+
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
