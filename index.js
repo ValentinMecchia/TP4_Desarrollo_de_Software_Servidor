@@ -10,7 +10,8 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173',
     'https://tp4-desarrollo-de-software-servidor.onrender.com',
-    'https://tp-4-desarrollo-de-software-cliente.vercel.app'
+    'https://tp-4-desarrollo-de-software-cliente.vercel.app',
+    'https://tp-4-desarrollo-de-software-cliente-kprmcm5zt.vercel.app'
 ];
 
 app.use((req, res, next) => {
