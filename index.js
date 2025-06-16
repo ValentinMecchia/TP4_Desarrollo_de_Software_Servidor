@@ -15,19 +15,30 @@ const allowedOrigins = [
     'https://tp-4-desarrollo-de-software-cliente.vercel.app'
 ];
 
+app.use((req, res, next) => {
+    console.log('🔍 Headers de la solicitud:', req.headers);
+    next();
+});
+
 app.use(cors({
     origin: function (origin, callback) {
-        const cleanOrigin = origin?.replace(/\/$/, '');
+        if (!origin) {
+            console.log('🌐 Sin origin (probablemente OAuth o backend): permitido');
+            return callback(null, true); // Permitir solicitudes sin origin (como redirecciones OAuth)
+        }
+
+        const cleanOrigin = origin.replace(/\/$/, '');
         console.log('🌐 Solicitud con origin:', cleanOrigin);
 
-        if (!origin || allowedOrigins.includes(cleanOrigin)) {
-            callback(null, true);
+        if (allowedOrigins.includes(cleanOrigin)) {
+            return callback(null, true);
         } else {
-            callback(new Error('CORS no permitido por el servidor'));
+            return callback(new Error('CORS no permitido por el servidor'));
         }
     },
     credentials: true,
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
