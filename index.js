@@ -5,8 +5,6 @@ const passport = require('passport');
 const cors = require('cors');
 require('./config/Auth');
 
-const yahooRoutes = require('./routes/yahoo_finance');
-
 const app = express();
 
 const allowedOrigins = [
@@ -24,13 +22,12 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) {
             console.log('🌐 Sin origin (probablemente OAuth o backend): permitido');
-            return callback(null, true); // Permitir solicitudes sin origin (como redirecciones OAuth)
+            return callback(null, true);
         }
 
         const cleanOrigin = origin.replace(/\/$/, '');
         console.log('🌐 Solicitud con origin:', cleanOrigin);
 
-        // Permitir si está en la lista blanca o si es un subdominio de vercel.app
         if (
             allowedOrigins.includes(cleanOrigin) ||
             cleanOrigin.endsWith('.vercel.app')
@@ -43,10 +40,12 @@ app.use(cors({
     credentials: true,
 }));
 
-
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.set('trust proxy', 1);
+
+const isProd = process.env.NODE_ENV === 'production';
 
 app.use(session({
     secret: 'secreto123',
@@ -54,7 +53,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
     }
 }));
@@ -62,7 +61,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/api/yahoo', yahooRoutes);
+app.use('/api/yahoo', require('./routes/yahoo_finance'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/portfolios', require('./routes/portfolioRoutes'));
@@ -77,7 +76,7 @@ sequelize.authenticate()
         return sequelize.sync({ alter: true });
     })
     .then(() => {
-        console.log('📦 Modelos sincronizados');
-        app.listen(3000, () => console.log('Servidor corriendo en http://localhost:3000'));
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
     })
     .catch(err => console.error('Error al conectar:', err));
