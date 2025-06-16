@@ -30,7 +30,11 @@ app.use(cors({
         const cleanOrigin = origin.replace(/\/$/, '');
         console.log('🌐 Solicitud con origin:', cleanOrigin);
 
-        if (allowedOrigins.includes(cleanOrigin)) {
+        // Permitir si está en la lista blanca o si es un subdominio de vercel.app
+        if (
+            allowedOrigins.includes(cleanOrigin) ||
+            cleanOrigin.endsWith('.vercel.app')
+        ) {
             return callback(null, true);
         } else {
             return callback(new Error('CORS no permitido por el servidor'));
@@ -38,6 +42,7 @@ app.use(cors({
     },
     credentials: true,
 }));
+
 
 
 app.use(express.json());
