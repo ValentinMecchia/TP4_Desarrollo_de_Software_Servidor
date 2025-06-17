@@ -45,6 +45,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1);
 
+console.log('🌍 Modo actual:', process.env.NODE_ENV);
+
 app.use(session({
     secret: 'secreto123',
     resave: false,
