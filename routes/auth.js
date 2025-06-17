@@ -5,6 +5,7 @@ const router = express.Router();
 router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email'],
     prompt: 'select_account',
+    accessType: 'offline',
 }));
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
