@@ -11,7 +11,6 @@ const allowedOrigins = [
     'http://localhost:5173',
     'https://tp4-desarrollo-de-software-servidor.onrender.com',
     'https://tp-4-desarrollo-de-software-cliente.vercel.app',
-    'https://tp-4-desarrollo-de-software-cliente-kprmcm5zt.vercel.app'
 ];
 
 app.use((req, res, next) => {
@@ -46,16 +45,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1);
 
-const isProd = process.env.NODE_ENV === 'production';
-
 app.use(session({
     secret: 'secreto123',
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: isProd,   // true solo si está en producción (y con HTTPS)
-        sameSite: isProd ? 'none' : 'lax', // 'none' si front y back en dominios distintos y HTTPS
+        secure: false,   // true solo si está en producción (y con HTTPS)
+        sameSite: 'lax', // 'none' si front y back en dominios distintos y HTTPS
         maxAge: 24 * 60 * 60 * 1000,
     }
 }));
