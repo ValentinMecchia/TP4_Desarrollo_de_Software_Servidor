@@ -54,7 +54,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production' ? true : false,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
+    domain: process.env.NODE_ENV === 'production' ? 'tp4-desarrollo-de-software-servidor.onrender.com' : undefined,
   }
 }));
 
