@@ -1,9 +1,6 @@
-const express = require('express');
-const sequelize = require('./db');
-const session = require('express-session');
 const passport = require('passport');
-const cors = require('cors');
-require('./config/Auth');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const User = require('../models/User');
 
 const app = express();
 
