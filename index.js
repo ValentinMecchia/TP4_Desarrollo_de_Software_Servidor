@@ -58,6 +58,18 @@ app.use(session({
   }
 }));
 
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    if (req.originalUrl.includes('/api/auth/google/callback')) {
+      const setCookieHeader = res.get('Set-Cookie');
+      console.log('--- CALLBACK RESPONSE HEADERS DEBUG ---');
+      console.log('Set-Cookie header on server response:', setCookieHeader);
+      console.log('--- END DEBUG ---');
+    }
+  });
+  next();
+});
+
 app.use(passport.initialize());
 app.use(passport.session());
 
