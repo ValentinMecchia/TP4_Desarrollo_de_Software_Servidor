@@ -17,6 +17,9 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
+    console.log('Backend Callback: req.isAuthenticated() =', req.isAuthenticated());
+    console.log('Backend Callback: req.user =', req.user ? req.user.id : 'No user');
+    console.log('Backend Callback: req.session ID =', req.session ? req.session.id : 'No session');
     const clientOrigin = req.headers.origin || req.headers.referer;
 
     let redirectUrl = VERCEL_PROD_DOMAIN;
