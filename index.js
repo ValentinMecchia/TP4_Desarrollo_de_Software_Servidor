@@ -3,7 +3,7 @@ const sequelize = require('./db');
 const session = require('express-session');
 const passport = require('passport');
 const cors = require('cors');
-require('./config/Auth');
+require('./config/Auth'); // Asegúrate de que este archivo no intente conectarse a la DB o definir rutas directamente
 
 const app = express();
 
@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('trust proxy', 1);
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'tu_secreto_de_sesion_aqui', // CAMBIA ESTO EN PRODUCCIÓN
+  secret: process.env.SESSION_SECRET || 'tu_secreto_de_sesion_aqui',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -60,6 +60,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// === Tus rutas de API ===
 app.use('/api/yahoo', require('./routes/yahoo_finance'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
@@ -67,8 +68,9 @@ app.use('/api/portfolios', require('./routes/portfolioRoutes'));
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/assets', require('./routes/assetRoutes'));
 app.use('/api/price-history', require('./routes/priceHistoryRoutes'));
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth')); // <--- Aquí se montan tus rutas de autenticación, incluyendo Google OAuth
 
+// === Conexión a la base de datos y arranque del servidor ===
 sequelize.authenticate()
   .then(() => {
     console.log('🟢 Conectado a la DB');
