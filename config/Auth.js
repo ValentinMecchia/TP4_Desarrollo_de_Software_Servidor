@@ -60,25 +60,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get('/api/auth/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: 'http://localhost:5173/login',
-    session: true
-  }),
-  (req, res) => {
-    const clientOrigin = req.headers.origin || req.headers.referer;
-
-    if (clientOrigin && isVercelFrontendOrigin(clientOrigin)) {
-      res.redirect(clientOrigin);
-    } else {
-      // Fallback a la URL de producción o a localhost si no se puede determinar dinámicamente
-      res.redirect(VERCEL_PROD_DOMAIN);
-    }
-  }
-);
-
 app.use('/api/yahoo', require('./routes/yahoo_finance'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
