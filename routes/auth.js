@@ -18,8 +18,9 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     console.log('Backend Callback: req.isAuthenticated() =', req.isAuthenticated());
-    console.log('Backend Callback: req.user =', req.user ? req.user.id : 'No user');
+    console.log('Backend Callback: req.user =', req.user ? req.user.user_id : 'No user'); // Usar req.user.user_id si tu ID de usuario está en user_id
     console.log('Backend Callback: req.session ID =', req.session ? req.session.id : 'No session');
+
     const clientOrigin = req.headers.origin || req.headers.referer;
 
     let redirectUrl = VERCEL_PROD_DOMAIN;
@@ -30,9 +31,17 @@ router.get('/google/callback',
       redirectUrl = 'http://localhost:5173';
     }
 
-    res.redirect(`${redirectUrl}/dashboard`);
+    req.session.save((err) => {
+      if (err) {
+        console.error("Error al guardar la sesión antes de redirigir:", err);
+        return res.redirect('/');
+      }
+      res.redirect(`${redirectUrl}/dashboard`);
+    });
   }
 );
+
+// === ESTAS RUTAS Y LA EXPORTACIÓN DEBEN ESTAR FUERA DEL CALLBACK ===
 
 router.get('/me', (req, res) => {
   if (req.isAuthenticated()) {
@@ -43,7 +52,7 @@ router.get('/me', (req, res) => {
 });
 
 router.post('/logout', (req, res, next) => {
-  req.logout(function(err) {
+  req.logout(function (err) {
     if (err) { return next(err); }
     req.session.destroy((err) => {
       if (err) {
