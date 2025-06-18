@@ -1,43 +1,100 @@
+const express = require('express');
+const sequelize = require('./db');
+const session = require('express-session');
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const cors = require('cors');
+require('./config/Auth');
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        const email = profile.emails[0].value;
-        const nickName = profile.displayName;
-        const photoURL = profile.photos && profile.photos[0] ? profile.photos[0].value : null;
+const app = express();
 
-        let user = await User.findOne({ where: { email } });
+const VERCEL_PROD_DOMAIN = 'https://tp-4-desarrollo-de-software-cliente.vercel.app';
+const STATIC_ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+];
 
-        if (!user) {
-            user = await User.create({ email, nickName, photoURL });
-        } else if (user.photoURL !== photoURL) {
-            user.photoURL = photoURL;
-            await user.save();
-        }
+function isVercelFrontendOrigin(origin) {
+  return origin && origin.endsWith('.vercel.app') && origin.includes('tp-4-desarrollo-de-software-cliente');
+}
 
-        return done(null, user);
-    } catch (err) {
-        return done(err, null);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
     }
+
+    const cleanOrigin = origin.replace(/\/$/, '');
+
+    if (
+        cleanOrigin === VERCEL_PROD_DOMAIN ||
+        STATIC_ALLOWED_ORIGINS.includes(cleanOrigin) ||
+        isVercelFrontendOrigin(cleanOrigin)
+    ) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS no permitido por el servidor'));
+    }
+  },
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type,Authorization',
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.set('trust proxy', 1);
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your_session_secret_here',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+  }
 }));
 
-passport.serializeUser((user, done) => {
-    console.log('Passport: Serializing user ID:', user.id);
-    done(null, user.id);
-});
+app.use(passport.initialize());
+app.use(passport.session());
 
-passport.deserializeUser(async (id, done) => {
-    try {
-        const user = await User.findByPk(id);
-        done(null, user);
-    } catch (err) {
-        console.error('Passport: Error deserializing user:', err);
-        done(err, null);
+app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/api/auth/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: 'http://localhost:5173/login',
+    session: true
+  }),
+  (req, res) => {
+    const clientOrigin = req.headers.origin || req.headers.referer;
+
+    if (clientOrigin && isVercelFrontendOrigin(clientOrigin)) {
+      res.redirect(clientOrigin);
+    } else {
+      // Fallback a la URL de producción o a localhost si no se puede determinar dinámicamente
+      res.redirect(VERCEL_PROD_DOMAIN);
     }
-});
+  }
+);
+
+app.use('/api/yahoo', require('./routes/yahoo_finance'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/investments', require('./routes/investmentRoutes'));
+app.use('/api/portfolios', require('./routes/portfolioRoutes'));
+app.use('/api/news', require('./routes/newsRoutes'));
+app.use('/api/assets', require('./routes/assetRoutes'));
+app.use('/api/price-history', require('./routes/priceHistoryRoutes'));
+app.use('/api/auth', require('./routes/auth'));
+
+sequelize.authenticate()
+  .then(() => {
+    console.log('🟢 Conectado a la DB');
+    return sequelize.sync({ alter: true });
+  })
+  .then(() => {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+  })
+  .catch(err => console.error('Error al conectar:', err));
