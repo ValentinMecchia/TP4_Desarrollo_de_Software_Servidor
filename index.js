@@ -62,6 +62,12 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use((req, res, next) => {
+    console.log('Backend Request - Session ID:', req.sessionID);
+    console.log('Backend Request - User (from session):', req.user ? req.user.email : 'Not authenticated');
+    next();
+});
+
 app.use('/api/yahoo', require('./routes/yahoo_finance'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
