@@ -51,7 +51,8 @@ app.use(session({
   saveUninitialized: false,
   store: new SequelizeStore({
     db: sequelize,
-    tableName: 'Sessions', // Opcional: nombre de la tabla para sesiones
+    tableName: 'AppSessions', // Opcional: nombre de la tabla para sesiones
+    schema: 'auth',
     checkExpirationInterval: 15 * 60 * 1000, // Limpia sesiones expiradas cada 15 minutos
     expiration: 24 * 60 * 60 * 1000, // Sesiones expiran después de 24 horas
   }),
