@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('trust proxy', 1);
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'tu_secreto_de_sesion_aqui',
+  secret: 'tu_secreto_de_sesion_aqui',
   resave: false,
   saveUninitialized: false,
   cookie: {
