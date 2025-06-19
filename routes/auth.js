@@ -18,16 +18,12 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     req.session.save(() => {
-      res.send(`
-        <html>
-          <body>
-            <script>
-              window.opener?.postMessage("oauth-success", "*");
-              window.close();
-            </script>
-          </body>
-        </html>
-      `);
+      // Redirigir al frontend
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? 'https://tp-4-desarrollo-de-software-cliente.vercel.app/dashboard'
+        : 'http://localhost:5173/dashboard';
+
+      res.redirect(redirectUrl);
     });
   }
 );
