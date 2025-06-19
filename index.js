@@ -3,6 +3,7 @@ const sequelize = require('./db');
 const session = require('express-session');
 const passport = require('passport');
 const cors = require('cors');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 require('./config/Auth'); // Asegúrate de que este archivo no intente conectarse a la DB o definir rutas directamente
 
 const app = express();
@@ -48,13 +49,21 @@ app.use(session({
   secret: 'tu_secreto_de_sesion_aqui',
   resave: false,
   saveUninitialized: false,
+  store: new SequelizeStore({
+    db: sequelize,
+    tableName: 'Sessions', // Opcional: nombre de la tabla para sesiones
+    checkExpirationInterval: 15 * 60 * 1000, // Limpia sesiones expiradas cada 15 minutos
+    expiration: 24 * 60 * 60 * 1000, // Sesiones expiran después de 24 horas
+  }),
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' ? true : false,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000,
-  }
+  },
 }));
+
+sequelize.sync({ alter: true });
 
 app.use((req, res, next) => {
   console.log('Cookie config:', {

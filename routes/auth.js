@@ -34,10 +34,14 @@ router.get('/google/callback',
 );
 
 router.get('/me', (req, res) => {
+  console.log('Solicitud a /api/auth/me');
+  console.log('Sesión:', req.sessionID, req.session);
+  console.log('Usuario:', req.user);
+  console.log('Cookies recibidas:', req.cookies);
   if (req.isAuthenticated()) {
     res.json({ user: req.user });
   } else {
-    res.status(401).json({ user: null });
+    res.status(401).json({ user: null, message: 'No autenticado' });
   }
 });
 
