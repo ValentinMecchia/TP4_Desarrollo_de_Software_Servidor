@@ -64,6 +64,13 @@ app.use(session({
   },
 }));
 
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    console.log('Encabezados de respuesta:', res.getHeaders());
+  });
+  next();
+});
+
 sequelize.sync({ alter: true });
 
 app.use((req, res, next) => {
