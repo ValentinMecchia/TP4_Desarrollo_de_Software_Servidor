@@ -18,20 +18,19 @@ function isVercelFrontendOrigin(origin) {
 
 const corsOptions = {
   origin: (origin, callback) => {
+    console.log('Origin recibido:', origin); // Depura el origen
     if (!origin) {
       return callback(null, true);
     }
-
     const cleanOrigin = origin.replace(/\/$/, '');
-
     if (
-        cleanOrigin === VERCEL_PROD_DOMAIN ||
-        STATIC_ALLOWED_ORIGINS.includes(cleanOrigin) ||
-        isVercelFrontendOrigin(cleanOrigin)
+      cleanOrigin === VERCEL_PROD_DOMAIN ||
+      STATIC_ALLOWED_ORIGINS.includes(cleanOrigin) ||
+      isVercelFrontendOrigin(cleanOrigin)
     ) {
-      return callback(null, true);
+      callback(null, cleanOrigin); // Devuelve el origen exacto
     } else {
-      return callback(new Error('CORS no permitido por el servidor'));
+      callback(new Error('CORS no permitido por el servidor'));
     }
   },
   credentials: true,
@@ -51,11 +50,19 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production' ? true : false,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000,
   }
 }));
+
+app.use((req, res, next) => {
+  console.log('Cookie config:', {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
+  next();
+});
 
 app.use((req, res, next) => {
   res.on('finish', () => {

@@ -17,12 +17,17 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    req.session.save(() => {
-      // Redirigir al frontend
+    console.log('Sesión después de autenticación:', req.session);
+    console.log('Usuario autenticado:', req.user);
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error al guardar sesión:', err);
+        return res.status(500).send('Error al guardar sesión');
+      }
       const redirectUrl = process.env.NODE_ENV === 'production'
         ? 'https://tp-4-desarrollo-de-software-cliente.vercel.app/dashboard'
         : 'http://localhost:5173/dashboard';
-
+      console.log('Redirigiendo a:', redirectUrl);
       res.redirect(redirectUrl);
     });
   }
