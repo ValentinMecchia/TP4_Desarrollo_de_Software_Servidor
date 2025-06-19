@@ -16,34 +16,18 @@ router.get('/google', passport.authenticate('google', {
 
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res, next) => {
-    const clientOrigin = req.headers.origin || req.headers.referer;
-
-    let redirectUrl = VERCEL_PROD_DOMAIN;
-
-    if (clientOrigin && isVercelFrontendOrigin(clientOrigin)) {
-      redirectUrl = clientOrigin;
-    } else if (process.env.NODE_ENV === 'development') {
-      redirectUrl = 'http://localhost:5173';
-    }
-
-    // Forzamos a Passport a serializar y deserializar correctamente
-    req.login(req.user, (err) => {
-      if (err) {
-        console.error('❌ Error en req.login:', err);
-        return res.redirect('/');
-      }
-
-      console.log('✅ Usuario deserializado con éxito:', req.user?.id || req.user?.user_id);
-
-      req.session.save((err) => {
-        if (err) {
-          console.error("❌ Error al guardar la sesión antes de redirigir:", err);
-          return res.redirect('/');
-        }
-
-        res.redirect(`${redirectUrl}/dashboard`);
-      });
+  (req, res) => {
+    req.session.save(() => {
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener?.postMessage("oauth-success", "*");
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
     });
   }
 );
