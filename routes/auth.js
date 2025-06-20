@@ -33,6 +33,7 @@ router.get('/google/callback',
   }
 );
 
+
 router.get('/me', (req, res) => {
   console.log('Solicitud a /api/auth/me');
   console.log('Sesión:', req.sessionID, req.session);
