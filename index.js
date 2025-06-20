@@ -17,7 +17,6 @@ function isVercelFrontendOrigin(origin) {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log('Origin recibido:', origin);
     if (!origin) {
       return callback(null, true);
     }
@@ -63,21 +62,6 @@ app.use(
     },
   })
 );
-
-app.use((req, res, next) => {
-  console.log('Sesión existente:', req.sessionID, req.session);
-  sessionStore.get(req.sessionID, (err, sessionData) => {
-    console.log('Datos de sesión en DB:', req.sessionID, sessionData);
-    next();
-  });
-});
-
-app.use((req, res, next) => {
-  res.on('finish', () => {
-    console.log('Encabezados de respuesta:', res.getHeaders());
-  });
-  next();
-});
 
 app.use(passport.initialize());
 app.use(passport.session());

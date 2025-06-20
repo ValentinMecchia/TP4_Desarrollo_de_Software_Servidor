@@ -28,14 +28,12 @@ passport.use(new GoogleStrategy({
 }));
 
 passport.serializeUser((user, done) => {
-    console.log('Passport: Serializing user ID:', user.id);
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findByPk(id);
-        console.log('🔄 Deserializando user:', user?.id);
         done(null, user);
     } catch (err) {
         console.error('❌ Error deserializando:', err);
