@@ -7,7 +7,6 @@ const cors = require('cors');
 require('./config/Auth');
 
 const app = express();
-sequelize.sync({ force: true });
 
 const VERCEL_PROD_DOMAIN = 'https://tp-4-desarrollo-de-software-cliente.vercel.app';
 const STATIC_ALLOWED_ORIGINS = ['http://localhost:5173'];
